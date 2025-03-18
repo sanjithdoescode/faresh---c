@@ -1,27 +1,5 @@
-interface CommunityPost {
-  id: string;
-  authorId: string;
-  authorType: 'FARMER' | 'CONSUMER';
-  content: {
-    en: string;
-    ta: string;
-  };
-  images?: string[];
-  tags: string[];
-  likes: number;
-  comments: Comment[];
-  createdAt: Date;
-}
-
-interface Comment {
-  id: string;
-  authorId: string;
-  content: {
-    en: string;
-    ta: string;
-  };
-  createdAt: Date;
-}
+import { Comment, CommunityPost } from '@prisma/client';
+import { CommunityRepository, NotificationService, ModerationService } from '../../types/services';
 
 export class CommunityService {
   private readonly communityRepository: CommunityRepository;
@@ -68,7 +46,7 @@ export class CommunityService {
     });
 
     // Notify relevant users based on tags
-    await this.notifyInterestedUsers(post);
+    await this.notifyInterestedUsers(post.tags, post);
 
     return post.id;
   }
@@ -107,16 +85,14 @@ export class CommunityService {
     return comment.id;
   }
 
-  private async notifyInterestedUsers(post: CommunityPost): Promise<void> {
-    const interestedUsers = await this.communityRepository.findUsersByInterests(post.tags);
-    
+  private async notifyInterestedUsers(interestedUsers: string[], post: CommunityPost): Promise<void> {
     await Promise.all(
-      interestedUsers.map(userId =>
+      interestedUsers.map((userId: string) =>
         this.notificationService.send(userId, {
           type: 'NEW_POST',
           message: {
-            en: `New post about ${post.tags.join(', ')}`,
-            ta: `${post.tags.join(', ')} பற்றிய புதிய பதிவு`
+            en: `New post in your area of interest: ${post.content.en}`,
+            ta: `உங்கள் ஆர்வத்தின் பகுதியில் புதிய பதிவு: ${post.content.ta}`
           }
         })
       )

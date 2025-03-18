@@ -1,3 +1,13 @@
+import { TraceabilityRecord } from '@prisma/client';
+import { TraceabilityRepository, NotificationService } from '../../types/services';
+
+const QUALITY_THRESHOLDS = {
+  temperature: { min: 15, max: 30 },
+  humidity: { min: 40, max: 70 }
+} as const;
+
+type QualityParameter = keyof typeof QUALITY_THRESHOLDS;
+
 interface TraceabilityRecord {
   id: string;
   productId: string;
@@ -33,17 +43,13 @@ export class ProductTraceabilityService {
   }
 
   async recordTraceabilityEvent(event: Omit<TraceabilityRecord, 'id'>): Promise<string> {
-    // Record the traceability event
     const record = await this.traceabilityRepository.createRecord({
       ...event,
       timestamp: new Date()
     });
 
-    // Check for quality issues
-    await this.checkQualityIssues(record);
-
     // Update product status
-    await this.updateProductStatus(record);
+    await this.traceabilityRepository.updateProductStatus(record.productId, record.stage);
 
     return record.id;
   }
@@ -69,14 +75,10 @@ export class ProductTraceabilityService {
 
   private identifyQualityIssues(checks: TraceabilityRecord['data']['qualityChecks']): string[] {
     const issues: string[] = [];
-    const thresholds = {
-      temperature: { min: 15, max: 30 },
-      humidity: { min: 40, max: 70 },
-      // Add other quality parameters
-    };
 
     checks?.forEach(check => {
-      const threshold = thresholds[check.parameter];
+      const parameter = check.parameter as QualityParameter;
+      const threshold = QUALITY_THRESHOLDS[parameter];
       if (threshold && (check.value < threshold.min || check.value > threshold.max)) {
         issues.push(`${check.parameter} out of range`);
       }

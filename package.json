@@ -1,0 +1,28 @@
+{
+  "name": "farm-connect",
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "prisma generate",
+    "dev": "ts-node src/server/index.ts",
+    "build": "tsc",
+    "start": "node dist/server/index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "4.16.2",
+    "express": "4.18.2",
+    "body-parser": "1.20.2",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "chart.js": "4.3.0",
+    "react-chartjs-2": "5.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.17",
+    "@types/node": "18.16.19",
+    "@types/react": "18.2.14",
+    "@types/react-dom": "18.2.6",
+    "prisma": "4.16.2",
+    "ts-node": "10.9.1",
+    "typescript": "5.1.6"
+  }
+} 

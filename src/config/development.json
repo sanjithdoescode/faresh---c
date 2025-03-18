@@ -1,0 +1,16 @@
+{
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "password": ""
+  },
+  "storage": {
+    "bucket": "farmconnect-dev",
+    "region": "ap-south-1"
+  },
+  "monitoring": {
+    "errorThreshold": 5,
+    "latencyThreshold": 1000,
+    "metricsInterval": 60000
+  }
+} 

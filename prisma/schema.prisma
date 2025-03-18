@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ... rest of the schema 
+
+// Add missing models
+model Farmer {
+  id          String    @id @default(uuid())
+  name        String
+  phone       String    @unique
+  location    Location?
+  products    Product[]
+  orders      Order[]
+  ratings     Rating[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  nameEn      String    // English name
+  nameTa      String    // Tamil name
+  price       Float
+  quantity    Float
+  unit        String
+  status      String?
+  farmerId    String
+  farmer      Farmer    @relation(fields: [farmerId], references: [id])
+  traceability TraceabilityRecord[]
+}
+
+model TraceabilityRecord {
+  id        String   @id @default(uuid())
+  productId String
+  farmerId  String
+  timestamp DateTime
+  stage     String
+  data      Json
+  product   Product  @relation(fields: [productId], references: [id])
+  farmer    Farmer   @relation(fields: [farmerId], references: [id])
+
+  @@index([productId, timestamp])
+  @@index([farmerId, timestamp])
+}
+
+model CommunityPost {
+  id         String    @id @default(uuid())
+  authorId   String
+  authorType String    // FARMER or CONSUMER
+  content    Json      // Multilingual content
+  images     String[]
+  tags       String[]
+  likes      Int       @default(0)
+  comments   Comment[]
+  createdAt  DateTime  @default(now())
+}
+
+model Comment {
+  id        String       @id @default(uuid())
+  postId    String
+  authorId  String
+  content   Json         // Multilingual content
+  createdAt DateTime     @default(now())
+  post      CommunityPost @relation(fields: [postId], references: [id])
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  latitude  Float
+  longitude Float
+  address   String?
+  farmerId  String?  @unique
+  farmer    Farmer?  @relation(fields: [farmerId], references: [id])
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  farmerId    String
+  farmer      Farmer      @relation(fields: [farmerId], references: [id])
+  status      String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  farmerId  String
+  farmer    Farmer   @relation(fields: [farmerId], references: [id])
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model Vehicle {
+  id              String    @id @default(uuid())
+  type            String
+  capacity        Float
+  latitude        Float
+  longitude       Float
+  status          String    @default("AVAILABLE")
+  deliveries      Delivery[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Delivery {
+  id                String    @id @default(uuid())
+  vehicleId         String
+  vehicle           Vehicle   @relation(fields: [vehicleId], references: [id])
+  pickupLatitude    Float
+  pickupLongitude   Float
+  dropLatitude      Float
+  dropLongitude     Float
+  status            String
+  cost              Float
+  scheduledTime     DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([vehicleId])
+  @@index([status])
+} 

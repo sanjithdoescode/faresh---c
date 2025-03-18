@@ -2,7 +2,10 @@ export type NotificationType =
   | 'LEARNING_RECOMMENDATION' 
   | 'CERTIFICATE_AWARDED' 
   | 'SETTLEMENT_NOTIFICATION' 
-  | 'SYSTEM_ALERT';
+  | 'SYSTEM_ALERT'
+  | 'QUALITY_ALERT'
+  | 'NEW_POST'
+  | 'NEW_COMMENT';
 
 export interface NotificationMessage {
   type: NotificationType;

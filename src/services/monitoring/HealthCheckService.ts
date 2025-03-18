@@ -2,6 +2,10 @@ import { logEvent } from '../../utils/monitoring/logger';
 import { AlertingService } from './AlertingService';
 import { MetricsService } from './MetricsService';
 import { DatabaseHealthCheck } from './health/DatabaseHealthCheck';
+import { RedisHealthCheck } from './health/RedisHealthCheck';
+import { Redis } from 'ioredis';
+import { StorageHealthCheck } from './health/StorageHealthCheck';
+import { S3 } from 'aws-sdk';
 
 interface HealthCheck {
   name: string;
@@ -14,14 +18,21 @@ export class HealthCheckService {
   private readonly alertingService: AlertingService;
   private readonly metricsService: MetricsService;
   private readonly databaseHealthCheck: DatabaseHealthCheck;
+  private readonly redisHealthCheck: RedisHealthCheck;
+  private readonly storageHealthCheck: StorageHealthCheck;
 
   constructor(
     alertingService: AlertingService,
-    metricsService: MetricsService
+    metricsService: MetricsService,
+    redis: Redis,
+    s3: S3,
+    storageBucket: string
   ) {
     this.alertingService = alertingService;
     this.metricsService = metricsService;
     this.databaseHealthCheck = new DatabaseHealthCheck();
+    this.redisHealthCheck = new RedisHealthCheck(redis);
+    this.storageHealthCheck = new StorageHealthCheck(s3, storageBucket);
     this.healthChecks = this.registerHealthChecks();
   }
 
@@ -80,12 +91,10 @@ export class HealthCheckService {
   }
 
   private async checkRedis(): Promise<boolean> {
-    // Implementation
-    return true;
+    return this.redisHealthCheck.check();
   }
 
   private async checkStorage(): Promise<boolean> {
-    // Implementation
-    return true;
+    return this.storageHealthCheck.check();
   }
 } 

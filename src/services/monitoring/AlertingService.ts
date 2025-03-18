@@ -1,6 +1,7 @@
 import { logEvent } from '../../utils/monitoring/logger';
 import { NotificationService } from '../notification/NotificationService';
 import { AlertRepository } from '../../repositories/AlertRepository';
+import { NotificationType } from '../../types/notification';
 
 interface Alert {
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -44,7 +45,7 @@ export class AlertingService {
     await Promise.all(
       stakeholders.map(stakeholder =>
         this.notificationService.send(stakeholder.id, {
-          type: 'SYSTEM_ALERT',
+          type: 'SYSTEM_ALERT' as NotificationType,
           message: {
             en: alert.message,
             ta: this.translateAlert(alert.message)

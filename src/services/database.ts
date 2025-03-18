@@ -1,10 +1,9 @@
 // Using Prisma ORM for type-safe database operations
 
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Farmer } from '@prisma/client'
+import { prisma } from '../lib/prisma'
 
-const prisma = new PrismaClient()
-
-export async function getNearbyFarmers(
+export async function findFarmersNearLocation(
   latitude: number,
   longitude: number,
   radiusKm: number
@@ -12,12 +11,15 @@ export async function getNearbyFarmers(
   return prisma.$queryRaw`
     SELECT *, 
            (6371 * acos(cos(radians(${latitude})) 
-           * cos(radians(lat)) 
-           * cos(radians(lng) - radians(${longitude})) 
+           * cos(radians(latitude)) 
+           * cos(radians(longitude) 
+           - radians(${longitude})) 
            + sin(radians(${latitude})) 
-           * sin(radians(lat)))) AS distance 
-    FROM Farmer 
-    HAVING distance < ${radiusKm} 
-    ORDER BY distance
+           * sin(radians(latitude)))) AS distance 
+    FROM "Farmer"
+    HAVING distance < ${radiusKm}
+    ORDER BY distance;
   `
-} 
+}
+
+export { prisma } 
