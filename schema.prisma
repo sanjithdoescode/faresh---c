@@ -1,0 +1,133 @@
+// Prisma schema
+
+model Farmer {
+  id          String    @id @default(uuid())
+  name        String
+  phone       String    @unique
+  location    Location?
+  products    Product[]
+  orders      Order[]
+  ratings     Rating[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Consumer {
+  id          String    @id @default(uuid())
+  name        String
+  phone       String    @unique
+  location    Location?
+  orders      Order[]
+  ratings     Rating[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  nameEn      String    // English name
+  nameTa      String    // Tamil name
+  price       Float
+  quantity    Float
+  unit        String
+  farmerId    String
+  farmer      Farmer    @relation(fields: [farmerId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  consumerId  String
+  farmerId    String
+  status      OrderStatus
+  items       OrderItem[]
+  totalAmount Float
+  consumer    Consumer    @relation(fields: [consumerId], references: [id])
+  farmer      Farmer     @relation(fields: [farmerId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+// Add missing models for new services
+model TraceabilityRecord {
+  id          String   @id @default(uuid())
+  productId   String
+  farmerId    String
+  timestamp   DateTime
+  stage       String
+  data        Json     // Store location, temperature, humidity etc.
+  product     Product  @relation(fields: [productId], references: [id])
+  farmer      Farmer   @relation(fields: [farmerId], references: [id])
+}
+
+model CommunityPost {
+  id         String    @id @default(uuid())
+  authorId   String
+  authorType String    // FARMER or CONSUMER
+  content    Json      // Multilingual content
+  images     String[]
+  tags       String[]
+  likes      Int       @default(0)
+  comments   Comment[]
+  createdAt  DateTime  @default(now())
+}
+
+model Comment {
+  id        String       @id @default(uuid())
+  postId    String
+  authorId  String
+  content   Json         // Multilingual content
+  createdAt DateTime     @default(now())
+  post      CommunityPost @relation(fields: [postId], references: [id])
+}
+
+// Add analytics models
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  eventType String
+  userId    String?
+  userType  String
+  data      Json
+  timestamp DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventType, timestamp])
+  @@index([userId, timestamp])
+}
+
+model Metric {
+  id          String   @id @default(uuid())
+  metricName  String
+  value       Float
+  timestamp   DateTime
+  dimensions  Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([metricName, timestamp])
+}
+
+// Add Alert model
+model Alert {
+  id        String   @id @default(uuid())
+  severity  String
+  type      String
+  message   String
+  data      Json
+  timestamp DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type, timestamp])
+  @@index([severity, timestamp])
+} 
